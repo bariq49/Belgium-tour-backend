@@ -1,0 +1,12 @@
+process.env.NODE_ENV = process.env.NODE_ENV || "test";
+process.env.MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/dsl-test";
+process.env.JWT_SECRET = process.env.JWT_SECRET || "test-jwt-secret";
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "test-refresh-secret";
+process.env.EMAIL_HOST = process.env.EMAIL_HOST || "smtp.example.com";
+process.env.EMAIL_USER = process.env.EMAIL_USER || "user@example.com";
+process.env.EMAIL_PASS = process.env.EMAIL_PASS || "test-password";
+process.env.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || "test-cloud";
+process.env.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || "test-key";
+process.env.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || "test-secret";
+process.env.WEBSITE_URL = process.env.WEBSITE_URL || "http://localhost:3000";
+process.env.ADMIN_URL = process.env.ADMIN_URL || "http://localhost:3001";
