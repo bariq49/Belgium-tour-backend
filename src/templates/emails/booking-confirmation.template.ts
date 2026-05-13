@@ -1,7 +1,7 @@
 import { IBooking } from "../../types/booking.types";
 
 export const getBookingUserEmailTemplate = (booking: IBooking) => {
-  const { orderNumber, customer, date, time, selectedPlan, priceBreakdown } = booking;
+  const { orderNumber, customer, date, pickupTime, tourName, travelersCount, language, priceBreakdown } = booking;
 
   return `
 <!DOCTYPE html>
@@ -13,7 +13,7 @@ export const getBookingUserEmailTemplate = (booking: IBooking) => {
   <style>
     body { background: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; margin: 0; color: #333; }
     .email-wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
-    .header { background: #000000; padding: 40px 20px; text-align: center; color: #ffffff; }
+    .header { background: #7D3C1F; padding: 40px 20px; text-align: center; color: #ffffff; }
     .header h1 { font-size: 28px; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
     .header p { opacity: 0.8; font-size: 16px; margin: 10px 0 0; }
     
@@ -24,7 +24,7 @@ export const getBookingUserEmailTemplate = (booking: IBooking) => {
     .section-title { font-size: 12px; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
     .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
     .detail-item { margin-bottom: 15px; }
-    .detail-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+    .detail-label { font-size: 11px; color: #888; margin-bottom: 4px; text-transform: uppercase; }
     .detail-value { font-size: 15px; font-weight: 700; color: #111; }
     
     .divider { height: 1px; background: #eee; margin: 25px 0; }
@@ -35,7 +35,7 @@ export const getBookingUserEmailTemplate = (booking: IBooking) => {
     .total-row { display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid #eee; font-size: 18px; font-weight: 800; color: #000; }
     
     .footer { padding: 30px; text-align: center; font-size: 13px; color: #888; background: #fafafa; }
-    .contact-info { margin-top: 15px; font-weight: 600; color: #555; }
+    .contact-info { margin-top: 15px; font-weight: 600; color: #7D3C1F; }
   </style>
 </head>
 <body>
@@ -47,60 +47,64 @@ export const getBookingUserEmailTemplate = (booking: IBooking) => {
 
     <div class="content">
       <div class="greeting">Hi ${customer.fullName},</div>
-      <p>Thank you for choosing us! Your booking has been successfully confirmed and your payment has been processed.</p>
+      <p>Thank you for choosing Belgium Private Tour! Your private tour has been successfully confirmed. We look forward to showing you the best of Belgium.</p>
       
       <div class="summary-card">
-        <div class="section-title">Ride Details</div>
+        <div class="section-title">Tour Details</div>
         <div class="details-grid">
+          <div class="detail-item">
+            <div class="detail-label">Tour</div>
+            <div class="detail-value">${tourName}</div>
+          </div>
           <div class="detail-item">
             <div class="detail-label">Date</div>
             <div class="detail-value">${date}</div>
           </div>
           <div class="detail-item">
-            <div class="detail-label">Time</div>
-            <div class="detail-value">${time}</div>
+            <div class="detail-label">Pickup Time</div>
+            <div class="detail-value">${pickupTime}</div>
           </div>
           <div class="detail-item">
-            <div class="detail-label">Rental Plan</div>
-            <div class="detail-value">${selectedPlan?.name || "Standard Rental"}</div>
+            <div class="detail-label">Travelers</div>
+            <div class="detail-value">${travelersCount} Guests</div>
           </div>
           <div class="detail-item">
-            <div class="detail-label">Duration</div>
-            <div class="detail-value">${selectedPlan?.duration} ${selectedPlan?.unit || "Hours"}</div>
+            <div class="detail-label">Language</div>
+            <div class="detail-value">${language}</div>
           </div>
         </div>
       </div>
 
+      <div class="section-title">Location Details</div>
+      <div class="details-grid">
+        <div class="detail-item">
+          <div class="detail-label">Hotel Name</div>
+          <div class="detail-value">${customer.hotelName}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Hotel Address</div>
+          <div class="detail-value">${customer.hotelAddress}</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       <div class="section-title">Payment Summary</div>
       <div class="price-row">
         <span class="price-label">Base Price</span>
-        <span class="price-value">$${priceBreakdown?.baseSubtotal?.toFixed(2)}</span>
-      </div>
-      ${priceBreakdown?.fuelFee ? `
-      <div class="price-row">
-        <span class="price-label">Prepaid Fuel</span>
-        <span class="price-value">$${priceBreakdown.fuelFee.toFixed(2)}</span>
-      </div>` : ''}
-      ${priceBreakdown?.deliveryFee ? `
-      <div class="price-row">
-        <span class="price-label">Delivery Service</span>
-        <span class="price-value">$${priceBreakdown.deliveryFee.toFixed(2)}</span>
-      </div>` : ''}
-      <div class="price-row">
-        <span class="price-label">Tax & Fees</span>
-        <span class="price-value">$${((priceBreakdown?.taxAmount || 0) + (priceBreakdown?.cardFeeAmount || 0) + (priceBreakdown?.tripProtectionFee || 0)).toFixed(2)}</span>
+        <span class="price-value">€${priceBreakdown?.basePrice?.toFixed(2)}</span>
       </div>
       
       <div class="total-row">
         <span>Total Paid</span>
-        <span>$${priceBreakdown?.total?.toFixed(2)}</span>
+        <span>€${priceBreakdown?.totalPrice?.toFixed(2)}</span>
       </div>
     </div>
 
     <div class="footer">
       <p>If you have any questions, please don't hesitate to reach out to our support team.</p>
-      <div class="contact-info">support@golfclub.com</div>
-      <p style="margin-top: 20px; font-size: 11px;">© 2026 Golf Club Rentals. All rights reserved.</p>
+      <div class="contact-info">info@belgiumprivatetours.com</div>
+      <p style="margin-top: 20px; font-size: 11px;">© 2026 Belgium Private Tour. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -109,7 +113,7 @@ export const getBookingUserEmailTemplate = (booking: IBooking) => {
 };
 
 export const getBookingAdminEmailTemplate = (booking: IBooking) => {
-  const { orderNumber, customer, date, time, selectedPlan, priceBreakdown } = booking;
+  const { orderNumber, customer, date, pickupTime, tourName, travelersCount, priceBreakdown } = booking;
 
   return `
 <!DOCTYPE html>
@@ -121,7 +125,7 @@ export const getBookingAdminEmailTemplate = (booking: IBooking) => {
   <style>
     body { background: #ebebeb; font-family: Arial, sans-serif; padding: 20px; margin: 0; color: #1a1a1a; }
     .email-wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border: 1px solid #e0e0e0; }
-    .header { background: #f9b233; padding: 30px; text-align: center; }
+    .header { background: #7D3C1F; padding: 30px; text-align: center; }
     .header h1 { font-weight: 800; font-size: 24px; color: #fff; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
     
     .body { padding: 30px; }
@@ -132,7 +136,7 @@ export const getBookingAdminEmailTemplate = (booking: IBooking) => {
     .label { color: #888; font-weight: 500; width: 40%; }
     .value { color: #111; font-weight: 700; text-align: right; }
     
-    .highlight-box { background: #f8f9fa; border-radius: 6px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #f9b233; }
+    .highlight-box { background: #f8f9fa; border-radius: 6px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #7D3C1F; }
     
     .footer { background: #000000; padding: 30px; text-align: center; color: #fff; }
     .footer p { font-size: 12px; margin: 0; opacity: 0.6; }
@@ -155,25 +159,26 @@ export const getBookingAdminEmailTemplate = (booking: IBooking) => {
         <tr><td class="label">Name</td><td class="value">${customer.fullName}</td></tr>
         <tr><td class="label">Email</td><td class="value">${customer.email}</td></tr>
         <tr><td class="label">Phone</td><td class="value">${customer.phone}</td></tr>
+        <tr><td class="label">Hotel</td><td class="value">${customer.hotelName}</td></tr>
       </table>
 
-      <div class="section-title">Ride Details</div>
+      <div class="section-title">Tour Details</div>
       <table class="details-table">
+        <tr><td class="label">Tour Name</td><td class="value">${tourName}</td></tr>
         <tr><td class="label">Date</td><td class="value">${date}</td></tr>
-        <tr><td class="label">Time</td><td class="value">${time}</td></tr>
-        <tr><td class="label">Plan</td><td class="value">${selectedPlan?.name}</td></tr>
-        <tr><td class="label">Duration</td><td class="value">${selectedPlan?.duration} ${selectedPlan?.unit}</td></tr>
+        <tr><td class="label">Pickup Time</td><td class="value">${pickupTime}</td></tr>
+        <tr><td class="label">Travelers</td><td class="value">${travelersCount} Guests</td></tr>
       </table>
 
       <div class="section-title">Financials</div>
       <table class="details-table">
-        <tr><td class="label">Total Amount</td><td class="value">$${priceBreakdown?.total?.toFixed(2)}</td></tr>
+        <tr><td class="label">Total Amount</td><td class="value">€${priceBreakdown?.totalPrice?.toFixed(2)}</td></tr>
         <tr><td class="label">Payment Status</td><td class="value" style="color: #28a745;">PAID</td></tr>
       </table>
     </div>
 
     <div class="footer">
-      <p>© 2026 Golf Club Administration Portal</p>
+      <p>© 2026 Belgium Private Tour Administration Portal</p>
     </div>
   </div>
 </body>

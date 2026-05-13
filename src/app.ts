@@ -63,7 +63,7 @@ if (env.NODE_ENV === "development") {
 app.get("/", (_req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    message: "golf club Backend API is working fine!",
+    message: "Belgium Private Tour Backend API is working fine!",
     timestamp: new Date().toISOString(),
     status: "operational",
   });
