@@ -3,8 +3,10 @@ import { env } from "../config/env";
 import logger from "../utils/logger";
 import { getContactCustomerEmailTemplate, getContactAdminEmailTemplate } from "../templates/emails/contact.template";
 import { getBookingUserEmailTemplate, getBookingAdminEmailTemplate } from "../templates/emails/booking-confirmation.template";
+import { getCustomTourUserEmailTemplate, getCustomTourAdminEmailTemplate } from "../templates/emails/custom-tour.template";
 import { IContact } from "../types/contact.types";
 import { IBooking } from "../types/booking.types";
+import { ICustomTourRequest } from "../types/custom-tour-request.types";
 import { SendEmailOptions } from "../types/email.types";
 
 
@@ -87,6 +89,29 @@ class EmailService {
       logger.info(`Booking confirmation emails sent for order: ${booking.orderNumber}`);
     } catch (err) {
       logger.error(`Booking Email Error for order ${booking.orderNumber}:`, err);
+    }
+  }
+
+  async sendCustomTourRequestEmails(request: ICustomTourRequest, tourTitle: string) {
+    try {
+      await Promise.all([
+        // Send to customer
+        this.sendEmail({
+          to: request.email,
+          subject: `Custom Tour Request Received: #${request.requestNumber}`,
+          html: getCustomTourUserEmailTemplate(request, tourTitle),
+        }),
+        // Send to admin
+        this.sendEmail({
+          to: this.getAdminEmail(),
+          subject: `NEW CUSTOM REQUEST: ${request.firstName} ${request.lastName} - #${request.requestNumber}`,
+          html: getCustomTourAdminEmailTemplate(request, tourTitle),
+          replyTo: request.email,
+        }),
+      ]);
+      logger.info(`Custom tour request emails sent for: ${request.requestNumber}`);
+    } catch (err) {
+      logger.error(`Custom Tour Email Error for request ${request.requestNumber}:`, err);
     }
   }
 

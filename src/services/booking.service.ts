@@ -2,7 +2,7 @@ import { Booking } from "../models/Booking";
 import { Payment } from "../models/Payment";
 import { IBooking } from "../types/booking.types";
 import APIFeature from "../utils/APIFeature";
-import squareService from "./square.service";
+import stripeService from "./stripe.service";
 import paymentService from "./payment.service";
 
 class BookingService {
@@ -10,7 +10,7 @@ class BookingService {
     const booking = new Booking(bookingData);
     await booking.save();
 
-    const checkout = await squareService.createCheckoutSession({
+    const checkout = await stripeService.createCheckoutSession({
       bookingId: booking._id.toString(),
       orderNumber: booking.orderNumber,
       amount: booking.priceBreakdown?.totalPrice || 0,
@@ -28,16 +28,15 @@ class BookingService {
         email: booking.customer.email,
         phone: booking.customer.phone,
       },
-      squareDetails: {
-        paymentLinkId: checkout.id,
-        squareOrderId: checkout.orderId,
+      stripeDetails: {
+        sessionId: checkout.id,
       },
     });
 
     return {
       booking,
       checkoutUrl: checkout.url,
-      paymentLinkId: checkout.id,
+      sessionId: checkout.id,
     };
   }
 

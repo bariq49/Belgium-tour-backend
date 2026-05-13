@@ -33,6 +33,7 @@ class TourService {
       price: body.price,
       itinerarySteps,
       highlights,
+      isCustom: body.isCustom ?? false,
       isActive: body.isActive ?? true,
       sortOrder: body.sortOrder ?? 0,
     });
@@ -43,7 +44,7 @@ class TourService {
   async getAllTours(queryString: Record<string, any>): Promise<TourListResult> {
     const features = new APIFeature(Tour as any, queryString, {
       search: { searchFields: ["title", "slug", "location", "summary", "description"] },
-      filterFields: ["isActive", "category"],
+      filterFields: ["isActive", "category", "isCustom"],
       sort: { defaultSort: "sortOrder,title" },
       populate: { path: "category", select: "name slug" },
     });
@@ -98,6 +99,7 @@ class TourService {
     if (body.highlights !== undefined) {
       updateData.highlights = Array.isArray(body.highlights) ? body.highlights : [];
     }
+    if (body.isCustom !== undefined) updateData.isCustom = body.isCustom;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
     if (body.sortOrder !== undefined) updateData.sortOrder = body.sortOrder;
 

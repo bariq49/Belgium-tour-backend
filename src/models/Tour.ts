@@ -23,6 +23,7 @@ const tourSchema = new Schema<ITour>(
     price: { type: Number, required: true, min: 0 },
     itinerarySteps: { type: [itineraryStepSchema], default: [] },
     highlights: { type: [String], default: [] },
+    isCustom: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
     sortOrder: { type: Number, default: 0 },
   },
@@ -30,7 +31,6 @@ const tourSchema = new Schema<ITour>(
 );
 
 tourSchema.index({ isActive: 1, sortOrder: 1 });
-tourSchema.index({ slug: 1 });
 tourSchema.index({ category: 1 });
 
 tourSchema.pre("validate", async function (next) {

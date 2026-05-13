@@ -7,7 +7,7 @@ const paymentSchema = new Schema<IPayment>(
     bookingId: { type: Schema.Types.ObjectId, ref: "Booking", required: true },
     orderNumber: { type: String, required: true },
     amount: { type: Number, required: true },
-    currency: { type: String, default: "USD" },
+    currency: { type: String, default: "EUR" },
     status: {
       type: String,
       enum: ["pending", "completed", "failed", "refunded"],
@@ -19,10 +19,9 @@ const paymentSchema = new Schema<IPayment>(
       email: { type: String },
       phone: { type: String },
     },
-    squareDetails: {
-      paymentLinkId: { type: String },
-      squareOrderId: { type: String },
-      paymentId: { type: String },
+    stripeDetails: {
+      sessionId: { type: String },
+      paymentIntentId: { type: String },
       receiptUrl: { type: String },
       cardBrand: { type: String },
       cardLast4: { type: String },

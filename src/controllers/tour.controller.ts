@@ -9,6 +9,12 @@ class TourController {
     return sendSuccess(res, result.data, { meta: result.meta });
   });
 
+  getCustomTours = asyncHandler(async (req: Request, res: Response) => {
+    const query = { ...req.query, isCustom: "true" };
+    const result = await tourService.getAllTours(query);
+    return sendSuccess(res, result.data, { meta: result.meta });
+  });
+
   getTour = asyncHandler(async (req: Request, res: Response) => {
     const tour = await tourService.getTourById(req.params.id);
     if (!tour) {

@@ -22,11 +22,8 @@ interface EnvConfig {
   JWT_EXPIRES_IN: string;
   JWT_REFRESH_SECRET: string;
   JWT_REFRESH_EXPIRES_IN: string;
-  SQUARE_ACCESS_TOKEN: string;
-  SQUARE_LOCATION_ID: string;
-  SQUARE_ENVIRONMENT: "sandbox" | "production";
-  SQUARE_WEBHOOK_SIGNATURE_KEY: string;
-  SQUARE_WEBHOOK_NOTIFICATION_URL: string;
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
   FRONTEND_URL: string;
 }
 
@@ -40,8 +37,8 @@ const getEnvConfig = (): EnvConfig => {
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_API_SECRET",
     "JWT_SECRET",
-    "SQUARE_ACCESS_TOKEN",
-    "SQUARE_LOCATION_ID",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
   ];
 
   const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
@@ -63,8 +60,8 @@ const getEnvConfig = (): EnvConfig => {
     EMAIL_PORT: parseInt(process.env.EMAIL_PORT || "587", 10),
     EMAIL_USER: process.env.EMAIL_USER || "",
     EMAIL_PASS: process.env.EMAIL_PASS || "",
-    EMAIL_FROM: process.env.EMAIL_FROM || "noreply@golf.com",
-    DEFAULT_ADMIN_EMAIL: process.env.DEFAULT_ADMIN_EMAIL || "admin@golf.com",
+    EMAIL_FROM: process.env.EMAIL_FROM || "noreply@belgiumtour.com",
+    DEFAULT_ADMIN_EMAIL: process.env.DEFAULT_ADMIN_EMAIL || "admin@belgiumtour.com",
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || "",
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || "",
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "",
@@ -75,11 +72,8 @@ const getEnvConfig = (): EnvConfig => {
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "15m",
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || "default_refresh_secret_key_change_me",
     JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || "30d",
-    SQUARE_ACCESS_TOKEN: process.env.SQUARE_ACCESS_TOKEN || "",
-    SQUARE_LOCATION_ID: process.env.SQUARE_LOCATION_ID || "",
-    SQUARE_ENVIRONMENT: (process.env.SQUARE_ENVIRONMENT as "sandbox" | "production") || "sandbox",
-    SQUARE_WEBHOOK_SIGNATURE_KEY: process.env.SQUARE_WEBHOOK_SIGNATURE_KEY || "",
-    SQUARE_WEBHOOK_NOTIFICATION_URL: process.env.SQUARE_WEBHOOK_NOTIFICATION_URL || "",
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || "",
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || "",
     FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:3000",
   };
 };

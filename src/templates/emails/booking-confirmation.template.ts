@@ -12,7 +12,7 @@ export const getBookingUserEmailTemplate = (booking: IBooking) => {
   <title>Booking Confirmed – ${orderNumber}</title>
   <style>
     body { background: #f4f4f4; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; margin: 0; color: #333; }
-    .email-wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
+    .email-wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e0e0e0; }
     .header { background: #7D3C1F; padding: 40px 20px; text-align: center; color: #ffffff; }
     .header h1 { font-size: 28px; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
     .header p { opacity: 0.8; font-size: 16px; margin: 10px 0 0; }
@@ -90,15 +90,16 @@ export const getBookingUserEmailTemplate = (booking: IBooking) => {
       <div class="divider"></div>
 
       <div class="section-title">Payment Summary</div>
-      <div class="price-row">
-        <span class="price-label">Base Price</span>
-        <span class="price-value">€${priceBreakdown?.basePrice?.toFixed(2)}</span>
-      </div>
-      
-      <div class="total-row">
-        <span>Total Paid</span>
-        <span>€${priceBreakdown?.totalPrice?.toFixed(2)}</span>
-      </div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 5px 0; color: #666; font-size: 14px;">Base Price</td>
+          <td style="padding: 5px 0; text-align: right; font-weight: 600; color: #111; font-size: 14px;">€${priceBreakdown?.basePrice?.toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td style="padding: 15px 0 5px; font-size: 18px; font-weight: 800; color: #000; border-top: 2px solid #eee;">Total Paid</td>
+          <td style="padding: 15px 0 5px; text-align: right; font-size: 18px; font-weight: 800; color: #000; border-top: 2px solid #eee;">€${priceBreakdown?.totalPrice?.toFixed(2)}</td>
+        </tr>
+      </table>
     </div>
 
     <div class="footer">

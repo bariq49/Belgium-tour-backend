@@ -18,6 +18,7 @@ export interface ITour extends Document {
   price: number;
   itinerarySteps: TourItineraryStep[];
   highlights: string[];
+  isCustom: boolean;
   isActive: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -36,6 +37,7 @@ export interface CreateTourInput {
   price: number;
   itinerarySteps?: TourItineraryStep[] | null;
   highlights?: string[] | null;
+  isCustom?: boolean;
   isActive?: boolean;
   sortOrder?: number;
 }
