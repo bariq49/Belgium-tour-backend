@@ -13,10 +13,9 @@ export interface IPayment extends Document {
     email: string;
     phone: string;
   };
-  squareDetails?: {
-    paymentLinkId?: string;
-    squareOrderId?: string;
-    paymentId?: string;
+  stripeDetails?: {
+    sessionId?: string;
+    paymentIntentId?: string;
     receiptUrl?: string;
     cardBrand?: string;
     cardLast4?: string;

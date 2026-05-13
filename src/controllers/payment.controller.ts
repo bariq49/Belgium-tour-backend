@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import paymentService from "../services/payment.service";
-import squareService from "../services/square.service";
+import stripeService from "../services/stripe.service";
 import bookingService from "../services/booking.service";
 import webhookService from "../services/webhook.service";
 import { asyncHandler } from "../middleware/asyncHandler";
@@ -20,7 +20,7 @@ class PaymentController {
       return sendError(res, "Booking not found", 404);
     }
 
-    const checkout = await squareService.createCheckoutSession({
+    const checkout = await stripeService.createCheckoutSession({
       bookingId: booking._id.toString(),
       orderNumber: booking.orderNumber,
       amount: booking.priceBreakdown?.totalPrice || 0,
@@ -38,42 +38,28 @@ class PaymentController {
         email: booking.customer.email,
         phone: booking.customer.phone,
       },
-      squareDetails: {
-        paymentLinkId: checkout.id,
-        squareOrderId: checkout.orderId,
+      stripeDetails: {
+        sessionId: checkout.id,
       },
     });
 
-    return sendSuccess(res, { paymentLinkId: checkout.id, url: checkout.url });
+    return sendSuccess(res, { sessionId: checkout.id, url: checkout.url });
   });
 
   handleWebhook = asyncHandler(async (req: Request, res: Response) => {
-    const signature = req.headers["x-square-hmacsha256-signature"] as string;
+    const signature = req.headers["stripe-signature"] as string;
     const rawBody = (req.body as Buffer).toString("utf8");
 
-    const isValid = await squareService.verifyWebhook(rawBody, signature);
-    if (!isValid) {
-      logger.error("Square webhook signature verification failed");
-      return res.status(400).send("Invalid signature");
-    }
-
-    let event: any;
     try {
-      event = JSON.parse(rawBody);
-    } catch {
-      return res.status(400).send("Invalid JSON payload");
-    }
-
-    logger.info(`Received Square Webhook Event: ${event.type} [${event.event_id || event.id}]`);
-
-    try {
+      const event = await stripeService.constructEvent(rawBody, signature);
+      logger.info(`Received Stripe Webhook Event: ${event.type} [${event.id}]`);
+      
       await webhookService.handleEvent(event);
+      return res.json({ received: true });
     } catch (error: any) {
-      logger.error(`Error processing webhook ${event.type}: ${error.message}`);
-      return res.status(500).json({ error: "Internal processing error" });
+      logger.error(`Stripe Webhook Error: ${error.message}`);
+      return res.status(400).send(`Webhook Error: ${error.message}`);
     }
-
-    return res.json({ received: true, eventId: event.event_id || event.id });
   });
 
   getPaymentDetails = asyncHandler(async (req: Request, res: Response) => {

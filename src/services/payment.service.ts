@@ -14,22 +14,21 @@ class PaymentService {
     return await Payment.findOne({ orderNumber });
   }
 
-  async handlePaymentSuccess(orderNumber: string, squareData: any) {
+  async handlePaymentSuccess(orderNumber: string, stripeData: any) {
     await bookingService.updateBookingStatus(orderNumber, "confirmed", "paid");
     return await Payment.findOneAndUpdate(
       { orderNumber },
       {
         status: "completed",
-        amount: squareData.amount,
-        currency: squareData.currency || "USD",
-        paymentMethod: squareData.paymentMethod || "card",
-        squareDetails: {
-          paymentLinkId: squareData.paymentLinkId,
-          squareOrderId: squareData.squareOrderId,
-          paymentId: squareData.paymentId,
-          receiptUrl: squareData.receiptUrl,
-          cardBrand: squareData.cardBrand,
-          cardLast4: squareData.cardLast4,
+        amount: stripeData.amount,
+        currency: stripeData.currency || "USD",
+        paymentMethod: stripeData.paymentMethod || "card",
+        stripeDetails: {
+          sessionId: stripeData.sessionId,
+          paymentIntentId: stripeData.paymentIntentId,
+          receiptUrl: stripeData.receiptUrl,
+          cardBrand: stripeData.cardBrand,
+          cardLast4: stripeData.cardLast4,
         },
       },
       { new: true }

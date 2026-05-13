@@ -12,6 +12,7 @@ import {
 const router: IRouter = Router();
 
 router.get("/", tourController.getTours);
+router.get("/custom", tourController.getCustomTours);
 router.get("/:id/reviews", reviewController.getReviewsById);
 router.get("/:id", tourController.getTour);
 

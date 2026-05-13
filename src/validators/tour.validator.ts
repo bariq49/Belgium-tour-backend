@@ -24,6 +24,7 @@ export const createTourSchema = Joi.object({
   itinerarySteps: Joi.array().items(itineraryStepSchema).max(40).optional(),
   highlights: Joi.array().items(highlightItem).max(40).optional(),
   isActive: Joi.boolean().optional(),
+  isCustom: Joi.boolean().optional(),
   sortOrder: Joi.number().integer().min(0).optional(),
 });
 
@@ -40,6 +41,7 @@ export const updateTourSchema = Joi.object({
   itinerarySteps: Joi.array().items(itineraryStepSchema).max(40),
   highlights: Joi.array().items(highlightItem).max(40),
   isActive: Joi.boolean(),
+  isCustom: Joi.boolean(),
   sortOrder: Joi.number().integer().min(0),
 }).min(1);
 

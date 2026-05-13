@@ -29,11 +29,10 @@ app.use(
   })
 );
 
-// Square Webhook MUST be mounted before the JSON parser and rate limiter:
+// Stripe Webhook MUST be mounted before the JSON parser and rate limiter:
 //  - raw body is required for HMAC signature verification
-//  - webhook deliveries from Square should never be rate-limited
 app.post(
-  "/api/webhooks/square",
+  "/api/webhooks/stripe",
   express.raw({ type: "application/json" }),
   paymentController.handleWebhook
 );
