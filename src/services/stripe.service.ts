@@ -27,7 +27,6 @@ class StripeService {
               currency: "EUR",
               product_data: {
                 name: `Tour Booking: ${data.orderNumber}`,
-                description: `Booking for Order #${data.orderNumber}`,
               },
               unit_amount: Math.round(data.amount * 100),
             },

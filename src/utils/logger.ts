@@ -50,7 +50,7 @@ const logger = winston.createLogger({
     winston.format.splat(),
     winston.format.json()
   ),
-  defaultMeta: { service: "golf-club-backend-api" },
+  defaultMeta: { service: "Belgium Private-backend-api" },
   transports,
 });
 
