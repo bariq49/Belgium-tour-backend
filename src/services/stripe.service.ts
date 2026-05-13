@@ -24,7 +24,7 @@ class StripeService {
         line_items: [
           {
             price_data: {
-              currency: "usd",
+              currency: "EUR",
               product_data: {
                 name: `Tour Booking: ${data.orderNumber}`,
                 description: `Booking for Order #${data.orderNumber}`,
