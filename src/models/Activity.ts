@@ -1,9 +1,11 @@
 import { Schema, model, Document, Types } from "mongoose";
+import type { AccountUserType, ActivityType, ActivityStatus } from "../types/account-auth";
 
 export interface IActivity extends Document {
-  admin: Types.ObjectId;
-  type: "login" | "logout" | "password_change" | "password_reset" | "logout_all";
-  status: "success" | "failed";
+  user: Types.ObjectId;
+  userType: AccountUserType;
+  type: ActivityType;
+  status: ActivityStatus;
   ipAddress: string;
   userAgent: string;
   device?: string;
@@ -14,14 +16,18 @@ export interface IActivity extends Document {
 
 const activitySchema = new Schema<IActivity>(
   {
-    admin: {
+    user: {
       type: Schema.Types.ObjectId,
-      ref: "Admin",
+      required: true,
+    },
+    userType: {
+      type: String,
+      enum: ["admin", "user"],
       required: true,
     },
     type: {
       type: String,
-      enum: ["login", "logout", "password_change", "password_reset", "logout_all"],
+      enum: ["login", "logout", "password_change", "password_reset", "password_reset_request", "update_profile", "logout_all"],
       required: true,
     },
     status: {
@@ -54,7 +60,6 @@ const activitySchema = new Schema<IActivity>(
   }
 );
 
-// Index for faster queries
-activitySchema.index({ admin: 1, timestamp: -1 });
+activitySchema.index({ user: 1, userType: 1, timestamp: -1 });
 
 export const Activity = model<IActivity>("Activity", activitySchema);

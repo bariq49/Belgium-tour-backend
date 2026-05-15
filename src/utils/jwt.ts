@@ -1,9 +1,12 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { env } from "../config/env";
+import type { AccountUserType } from "../types/account-auth";
 
 export interface TokenPayload {
   id: string;
+  role: string;
+  type: AccountUserType;
   iat?: number;
   exp?: number;
 }

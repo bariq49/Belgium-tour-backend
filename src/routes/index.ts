@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import uploadRoutes from "./upload.routes";
-import authRoutes from "./auth.routes";
+import adminAuthRoutes from "./admin-auth.routes";
+import userAuthRoutes from "./user-auth.routes";
 import adminRoutes from "./admin.routes";
 import contactRoutes from "./contact.routes";
 import bookingSettingsRoutes from "./booking-settings.routes";
@@ -13,7 +14,8 @@ import customTourRequestRoutes from "./custom-tour-request.routes";
 import reviewRoutes from "./review.routes";
 
 const router: IRouter = Router();
-router.use("/api/auth", authRoutes);
+router.use("/api/admin/auth", adminAuthRoutes);
+router.use("/api/auth", userAuthRoutes);
 router.use("/api/admin", adminRoutes);
 router.use("/api/categories", categoryRoutes);
 router.use("/api/tours", tourRoutes);

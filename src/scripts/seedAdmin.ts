@@ -15,7 +15,8 @@ const seedAdmin = async () => {
     }
 
     const admin = new Admin({
-      name: "Super Admin",
+      firstName: "Super",
+      lastName: "Admin",
       email: "info@thedevsquare.com",
       password: "Thedevsquare0345",
       role: "admin",

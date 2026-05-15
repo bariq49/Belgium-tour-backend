@@ -2,9 +2,8 @@ import { Schema, model, Document } from "mongoose";
 import bcrypt from "bcryptjs";
 
 export interface IAdmin extends Document {
-  name: string;
-  firstName?: string;
-  lastName?: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phoneNumber?: string;
   avatar?: string;
@@ -19,17 +18,14 @@ export interface IAdmin extends Document {
 
 const adminSchema = new Schema<IAdmin>(
   {
-    name: {
-      type: String,
-      required: [true, "Name is required"],
-      trim: true,
-    },
     firstName: {
       type: String,
+      required: [true, "First name is required"],
       trim: true,
     },
     lastName: {
       type: String,
+      required: [true, "Last name is required"],
       trim: true,
     },
     phoneNumber: {

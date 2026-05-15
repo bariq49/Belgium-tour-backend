@@ -1,8 +1,10 @@
 import { Schema, model, Document, Types } from "mongoose";
+import type { AccountUserType } from "../types/account-auth";
 
 export interface ISession extends Document {
-  admin: Types.ObjectId;
-  refreshToken: string; // Hashed refresh token
+  user: Types.ObjectId;
+  userType: AccountUserType;
+  refreshToken: string;
   ipAddress: string;
   userAgent: string;
   device?: string;
@@ -14,9 +16,14 @@ export interface ISession extends Document {
 
 const sessionSchema = new Schema<ISession>(
   {
-    admin: {
+    user: {
       type: Schema.Types.ObjectId,
-      ref: "Admin",
+      required: true,
+      index: true,
+    },
+    userType: {
+      type: String,
+      enum: ["admin", "user"],
       required: true,
       index: true,
     },
@@ -43,12 +50,14 @@ const sessionSchema = new Schema<ISession>(
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: 0 }, // TTL index for automatic cleanup
+      index: { expires: 0 },
     },
   },
   {
     timestamps: true,
   }
 );
+
+sessionSchema.index({ user: 1, userType: 1 });
 
 export const Session = model<ISession>("Session", sessionSchema);
