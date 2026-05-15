@@ -4,10 +4,18 @@ import logger from "../utils/logger";
 import { getContactCustomerEmailTemplate, getContactAdminEmailTemplate } from "../templates/emails/contact.template";
 import { getBookingUserEmailTemplate, getBookingAdminEmailTemplate } from "../templates/emails/booking-confirmation.template";
 import { getCustomTourUserEmailTemplate, getCustomTourAdminEmailTemplate } from "../templates/emails/custom-tour.template";
+import { 
+  getPartnerWelcomeEmailTemplate, 
+  getPartnerAdminNotificationEmailTemplate, 
+  getPartnerApprovalEmailTemplate,
+  getPartnerStatusChangeEmailTemplate,
+  getForgotPasswordEmailTemplate
+} from "../templates/emails/partner-auth.template";
 import { IContact } from "../types/contact.types";
 import { IBooking } from "../types/booking.types";
 import { ICustomTourRequest } from "../types/custom-tour-request.types";
 import { SendEmailOptions } from "../types/email.types";
+import { IUser } from "../models/User";
 
 
 class EmailService {
@@ -115,6 +123,66 @@ class EmailService {
     }
   }
 
+  async sendPartnerWelcomeEmail(user: IUser) {
+    try {
+      await this.sendEmail({
+        to: user.email,
+        subject: "Partner Application Received - Belgium Tour",
+        html: getPartnerWelcomeEmailTemplate(user),
+      });
+    } catch (err) {
+      logger.error(`Partner Welcome Email Error [${user.email}]:`, err);
+    }
+  }
+
+  async sendPartnerApplicationAdminEmail(user: IUser) {
+    try {
+      await this.sendEmail({
+        to: this.getAdminEmail(),
+        subject: `NEW PARTNER APPLICATION: ${user.firstName} ${user.lastName}`,
+        html: getPartnerAdminNotificationEmailTemplate(user),
+        replyTo: user.email,
+      });
+    } catch (err) {
+      logger.error(`Partner Admin Notification Email Error:`, err);
+    }
+  }
+
+  async sendPartnerApprovalEmail(user: IUser, resetToken: string) {
+    try {
+      await this.sendEmail({
+        to: user.email,
+        subject: "Your Account has been Approved - Belgium Tour",
+        html: getPartnerApprovalEmailTemplate(user, resetToken),
+      });
+    } catch (err) {
+      logger.error(`Partner Approval Email Error [${user.email}]:`, err);
+    }
+  }
+
+  async sendPartnerStatusChangeEmail(user: IUser, status: string, reason: string) {
+    try {
+      await this.sendEmail({
+        to: user.email,
+        subject: `Account Status Update: ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        html: getPartnerStatusChangeEmailTemplate(user, status, reason),
+      });
+    } catch (err) {
+      logger.error(`Partner Status Change Email Error [${user.email}]:`, err);
+    }
+  }
+
+  async sendForgotPasswordEmail(user: IUser, resetToken: string) {
+    try {
+      await this.sendEmail({
+        to: user.email,
+        subject: "Reset Your Password - Belgium Tour",
+        html: getForgotPasswordEmailTemplate(user, resetToken),
+      });
+    } catch (err) {
+      logger.error(`Forgot Password Email Error [${user.email}]:`, err);
+    }
+  }
 }
 
 export default new EmailService();

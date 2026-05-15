@@ -12,11 +12,9 @@ const loginLimiter = rateLimit({
   message: "Too many login attempts, please try again after 15 minutes",
 });
 
-// Public routes
 router.post("/login", loginLimiter, validateRequest(loginSchema), authController.login);
 router.post("/refresh", authController.refresh);
 
-// Protected routes
 router.use(protect);
 router.post("/logout", authController.logout);
 router.post("/change-password", validateRequest(changePasswordSchema), authController.changePassword);

@@ -10,11 +10,22 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  // Accept only images
-  if (file.mimetype.startsWith("image/")) {
+  // Allow images and common document types
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+  ];
+
+  if (file.mimetype.startsWith("image/") || allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Only image files are allowed"));
+    cb(new Error("File type not supported. Please upload an image or document (PDF, Word, Excel).") as any);
   }
 };
 

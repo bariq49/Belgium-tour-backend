@@ -4,11 +4,22 @@ import { Session } from "../models/Session";
 import { UAParser } from "ua-parser-js";
 import { Types } from "mongoose";
 import { AppError } from "../errors/AppError";
-import { JwtUtil } from "../utils/jwt";
+import { JwtUtil, TokenPayload } from "../utils/jwt";
+import type { AccountUserType } from "../types/account-auth";
+
+const ADMIN_ACCOUNT: AccountUserType = "admin";
 
 class AuthService {
   async findAdminById(id: string): Promise<IAdmin | null> {
     return Admin.findById(id);
+  }
+
+  private buildAdminTokenPayload(admin: IAdmin): TokenPayload {
+    return {
+      id: admin._id.toString(),
+      role: admin.role,
+      type: ADMIN_ACCOUNT,
+    };
   }
 
   async login(data: any, req: any): Promise<{ admin: IAdmin; accessToken: string; refreshToken: string }> {
@@ -18,32 +29,27 @@ class AuthService {
       throw new AppError("Invalid credentials", 401);
     }
 
-    // 1. Check if account is locked
     if (admin.lockUntil && admin.lockUntil > new Date()) {
       throw new AppError("Account is temporarily locked. Please try again later.", 423);
     }
 
-    // 2. Verify password
     if (!(await admin.comparePassword(data.password))) {
       await this.handleFailedLogin(admin, req);
       throw new AppError("Invalid credentials", 401);
     }
 
-    // 3. Reset failed attempts on success
     admin.failedLoginAttempts = 0;
     admin.lockUntil = undefined;
     admin.lastLogin = new Date();
     await admin.save();
 
-    // 4. Generate Tokens
-    const accessToken = JwtUtil.generateAccessToken({ id: admin._id.toString() });
-    const refreshToken = JwtUtil.generateRefreshToken({ id: admin._id.toString() });
+    const tokenPayload = this.buildAdminTokenPayload(admin);
+    const accessToken = JwtUtil.generateAccessToken(tokenPayload);
+    const refreshToken = JwtUtil.generateRefreshToken(tokenPayload);
 
-    // 5. Create Session (Refresh Token Tracking)
-    await this.createSession(admin._id.toString(), refreshToken, req);
+    await this.createSession(admin._id.toString(), ADMIN_ACCOUNT, refreshToken, req);
 
-    // 6. Log Activity (Non-blocking)
-    this.logActivity(admin._id.toString(), req, "login").catch(console.error);
+    this.persistActivity(admin._id.toString(), ADMIN_ACCOUNT, req, "login").catch(console.error);
 
     return { admin, accessToken, refreshToken };
   }
@@ -52,24 +58,35 @@ class AuthService {
     const decoded = JwtUtil.verifyRefreshToken(token);
     const hashedToken = JwtUtil.hashToken(token);
 
-    // 1. Find valid session
     const session = await Session.findOne({
       refreshToken: hashedToken,
       isValid: true,
-      expiresAt: { $gt: new Date() }
+      expiresAt: { $gt: new Date() },
+      userType: ADMIN_ACCOUNT,
     });
 
     if (!session) {
-      // Security: If token is valid but session not found, possible theft. Revoke all.
-      await Session.updateMany({ admin: new Types.ObjectId(decoded.id) }, { isValid: false });
+      await Session.updateMany(
+        { user: new Types.ObjectId(decoded.id), userType: ADMIN_ACCOUNT },
+        { isValid: false }
+      );
       throw new AppError("Invalid or compromised refresh token", 401);
     }
 
-    // 2. Token Rotation: Generate new pair
-    const newAccessToken = JwtUtil.generateAccessToken({ id: decoded.id });
-    const newRefreshToken = JwtUtil.generateRefreshToken({ id: decoded.id });
+    if (session.user.toString() !== decoded.id) {
+      await Session.updateMany({ user: session.user, userType: ADMIN_ACCOUNT }, { isValid: false });
+      throw new AppError("Invalid or compromised refresh token", 401);
+    }
 
-    // 3. Update Session (Rotate Token)
+    const admin = await Admin.findById(session.user);
+    if (!admin) {
+      throw new AppError("Invalid or compromised refresh token", 401);
+    }
+
+    const tokenPayload = this.buildAdminTokenPayload(admin);
+    const newAccessToken = JwtUtil.generateAccessToken(tokenPayload);
+    const newRefreshToken = JwtUtil.generateRefreshToken(tokenPayload);
+
     session.refreshToken = JwtUtil.hashToken(newRefreshToken);
     await session.save();
 
@@ -78,13 +95,16 @@ class AuthService {
 
   async logout(refreshToken: string, adminId: string): Promise<void> {
     const hashedToken = JwtUtil.hashToken(refreshToken);
-    await Session.findOneAndUpdate({ refreshToken: hashedToken, admin: new Types.ObjectId(adminId) }, { isValid: false });
+    await Session.findOneAndUpdate(
+      { refreshToken: hashedToken, user: new Types.ObjectId(adminId), userType: ADMIN_ACCOUNT },
+      { isValid: false }
+    );
   }
 
   async logoutAllDevices(adminId: string): Promise<void> {
     await Promise.all([
-      Session.updateMany({ admin: new Types.ObjectId(adminId) }, { isValid: false }),
-      Admin.findByIdAndUpdate(adminId, { passwordChangedAt: new Date() })
+      Session.updateMany({ user: new Types.ObjectId(adminId), userType: ADMIN_ACCOUNT }, { isValid: false }),
+      Admin.findByIdAndUpdate(adminId, { passwordChangedAt: new Date() }),
     ]);
   }
 
@@ -98,19 +118,19 @@ class AuthService {
     admin.passwordChangedAt = new Date();
     await admin.save();
 
-    // Revoke all sessions on password change
-    await Session.updateMany({ admin: admin._id }, { isValid: false });
-    this.logActivity(admin._id.toString(), req, "password_change").catch(console.error);
+    await Session.updateMany({ user: admin._id, userType: ADMIN_ACCOUNT }, { isValid: false });
+    this.persistActivity(admin._id.toString(), ADMIN_ACCOUNT, req, "password_change").catch(console.error);
   }
 
-  private async createSession(adminId: string, token: string, req: any): Promise<void> {
+  private async createSession(userId: string, userType: AccountUserType, token: string, req: any): Promise<void> {
     const parser = new UAParser(req.headers["user-agent"]);
     const result = parser.getResult();
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days matches env default
+    expiresAt.setDate(expiresAt.getDate() + 30);
 
     await Session.create({
-      admin: new Types.ObjectId(adminId),
+      user: new Types.ObjectId(userId),
+      userType,
       refreshToken: JwtUtil.hashToken(token),
       ipAddress: req.ip || "unknown",
       userAgent: req.headers["user-agent"] || "unknown",
@@ -124,22 +144,29 @@ class AuthService {
   private async handleFailedLogin(admin: IAdmin, req: any): Promise<void> {
     admin.failedLoginAttempts += 1;
     if (admin.failedLoginAttempts >= 5) {
-      const lockDuration = 30 * 60 * 1000; // 30 minutes
+      const lockDuration = 30 * 60 * 1000;
       admin.lockUntil = new Date(Date.now() + lockDuration);
-      admin.failedLoginAttempts = 0; // Reset after lock
+      admin.failedLoginAttempts = 0;
     }
     await admin.save();
-    this.logActivity(admin._id.toString(), req, "login", "failed").catch(console.error);
+    this.persistActivity(admin._id.toString(), ADMIN_ACCOUNT, req, "login", "failed").catch(console.error);
   }
 
-  async logActivity(adminId: string, req: any, type: IActivity["type"], status: IActivity["status"] = "success"): Promise<void> {
+  private async persistActivity(
+    accountId: string,
+    userType: AccountUserType,
+    req: any,
+    type: IActivity["type"],
+    status: IActivity["status"] = "success"
+  ): Promise<void> {
     try {
       const userAgent = req.headers["user-agent"] || "unknown";
       const parser = new UAParser(userAgent);
       const result = parser.getResult();
 
       await Activity.create({
-        admin: new Types.ObjectId(adminId),
+        user: new Types.ObjectId(accountId),
+        userType,
         type,
         status,
         ipAddress: req.ip || "unknown",
@@ -153,8 +180,20 @@ class AuthService {
     }
   }
 
+  async logActivity(
+    adminId: string,
+    req: any,
+    type: IActivity["type"],
+    status: IActivity["status"] = "success"
+  ): Promise<void> {
+    return this.persistActivity(adminId, ADMIN_ACCOUNT, req, type, status);
+  }
+
   async getActivities(adminId: string): Promise<any[]> {
-    return Activity.find({ admin: new Types.ObjectId(adminId) }).sort({ timestamp: -1 }).limit(10).lean();
+    return Activity.find({ user: new Types.ObjectId(adminId), userType: ADMIN_ACCOUNT })
+      .sort({ timestamp: -1 })
+      .limit(10)
+      .lean();
   }
 }
 

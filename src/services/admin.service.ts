@@ -1,8 +1,10 @@
 import { Admin, IAdmin } from "../models/Admin";
+import { User } from "../models/User";
 import { Booking } from "../models/Booking";
 import { Payment } from "../models/Payment";
 import { AppError } from "../errors/AppError";
 import { startOfMonth, endOfMonth, subMonths, format } from "date-fns";
+import APIFeature from "../utils/APIFeature";
 
 class AdminService {
   async getMe(adminId: string): Promise<IAdmin | null> {
@@ -14,9 +16,7 @@ class AdminService {
     if (!admin) {
       throw new AppError("Admin not found", 404);
     }
-
-    // Update only allowed fields
-    const allowedUpdates = ["name", "firstName", "lastName", "phoneNumber", "avatar"];
+    const allowedUpdates = ["firstName", "lastName", "phoneNumber", "avatar"];
     Object.keys(data).forEach((key) => {
       if (allowedUpdates.includes(key)) {
         (admin as any)[key] = (data as any)[key];
@@ -156,6 +156,52 @@ class AdminService {
         status: "strong"
       }
     };
+  }
+
+  async getPartners(queryString: Record<string, any> = {}) {
+    const features = new APIFeature(User as any, queryString, {
+      filterFields: ["status", "role", "companyName"],
+      sort: { defaultSort: "-createdAt" },
+    });
+
+    // Add filter for partner roles
+    features.addFilter({
+      role: { $in: ["travel_agency", "dmc", "hotel_partner"] }
+    });
+
+    const result = await features.execute();
+
+    return {
+      data: result.data,
+      meta: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        pages: result.pages,
+      },
+    };
+  }
+
+  async getPartnerById(id: string) {
+    const user = await User.findById(id);
+    if (!user) {
+      throw new AppError("Partner not found", 404);
+    }
+    return user;
+  }
+
+  async deletePartnerById(id: string) {
+    const user = await User.findOne({ 
+      _id: id, 
+      role: { $in: ["travel_agency", "dmc", "hotel_partner"] } 
+    });
+    
+    if (!user) {
+      throw new AppError("Partner not found", 404);
+    }
+
+    await User.findByIdAndDelete(id);
+    return true;
   }
 }
 

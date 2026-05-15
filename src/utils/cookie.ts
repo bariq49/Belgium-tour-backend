@@ -48,8 +48,36 @@ export const clearAuthCookies = (res: Response) => {
   const clearOptions = { httpOnly: true, secure: isProduction, sameSite: isProduction ? ("none" as const) : ("lax" as const) };
   res.clearCookie("accessToken", clearOptions);
   res.clearCookie("refreshToken", clearOptions);
-  
-  return sendSuccess(res, undefined, { 
-    message: "Logged out successfully" 
+
+  return sendSuccess(res, undefined, {
+    message: "Logged out successfully",
+  });
+};
+
+export const sendUserAuthResponse = (
+  res: Response,
+  accessToken: string,
+  refreshToken: string,
+  rememberMe: boolean = false,
+  data: any = {}
+) => {
+  const accessMaxAge = parseDurationToMs(env.JWT_EXPIRES_IN);
+  const refreshMaxAge = rememberMe ? parseDurationToMs(env.JWT_REFRESH_EXPIRES_IN) : 0;
+
+  res.cookie("userAccessToken", accessToken, getCookieOptions(accessMaxAge));
+  res.cookie("userRefreshToken", refreshToken, getCookieOptions(refreshMaxAge));
+
+  return sendSuccess(res, { ...data, accessToken }, {
+    message: "Authentication successful",
+  });
+};
+
+export const clearUserAuthCookies = (res: Response) => {
+  const clearOptions = { httpOnly: true, secure: isProduction, sameSite: isProduction ? ("none" as const) : ("lax" as const) };
+  res.clearCookie("userAccessToken", clearOptions);
+  res.clearCookie("userRefreshToken", clearOptions);
+
+  return sendSuccess(res, undefined, {
+    message: "Logged out successfully",
   });
 };

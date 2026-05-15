@@ -12,7 +12,8 @@ class AuthController {
     return sendAuthResponse(res, accessToken, refreshToken, req.body.rememberMe, {
       admin: {
         _id: admin._id,
-        name: admin.name,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
         email: admin.email,
         role: admin.role,
         lastLogin: admin.lastLogin
